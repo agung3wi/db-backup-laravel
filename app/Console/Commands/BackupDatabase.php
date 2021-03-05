@@ -16,7 +16,7 @@ class BackupDatabase extends Command
      *
      * @var string
      */
-    protected $signature = 'db-backup {--drive=} {--host=} {--user=} {--password=} {--port=} {--database=}';
+    protected $signature = 'db-backup {--drive=} {--host=} {--user=} {--password=} {--port=} {--database=} {--name=}';
 
     /**
      * The console command description.
@@ -42,7 +42,8 @@ class BackupDatabase extends Command
      */
     public function handle()
     {
-
+        ini_set("memory_limit", -1);
+        echo env("GOOGLE_DRIVE_REFRESH_TOKEN");
         try {
             $dbDrive = 'pgsql';
             $dbHost = 'localhost';
@@ -79,9 +80,12 @@ class BackupDatabase extends Command
 
             if ($this->option('database')) {
                 $dbName = $this->option('database');
+                $name = $this->option('database');
             }
 
-            $this->info($dbPassword);
+            if ($this->option('name')) {
+                $name = $this->option('name');
+            }
 
             $this->info('The backup has been started');
             $backup_name = $dbName . ".sql";
@@ -93,7 +97,7 @@ class BackupDatabase extends Command
                 ->setHost($dbHost)
                 ->setDbName($dbName);
             $dumpCommand->dumpToFile($backup_path);
-            Storage::disk('s3')->put('backup/' . $dbName . '.sql', fopen($backup_path, 'r+'));
+            Storage::disk('s3')->put($name . '.sql', fopen($backup_path, 'r+'));
             $this->info('The backup has been proceed successfully.');
         } catch (ProcessFailedException $exception) {
             logger()->error('Backup exception', compact('exception'));

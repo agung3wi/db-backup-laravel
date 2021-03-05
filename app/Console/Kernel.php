@@ -24,7 +24,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $command = 'db-backup --drive=pgsql --host=siskodian.appdemo.online --user=postgres --password=Awesome123! --port=5432 --database=koperasi --name=siskodian';
+        $schedule->command(preg_replace('/\s+/', ' ', $command))->everyMinute();
     }
 
     /**
@@ -34,7 +35,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
