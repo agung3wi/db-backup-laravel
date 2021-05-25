@@ -43,7 +43,6 @@ class BackupDatabase extends Command
     public function handle()
     {
         ini_set("memory_limit", -1);
-        echo env("GOOGLE_DRIVE_REFRESH_TOKEN");
         try {
             $dbDrive = 'pgsql';
             $dbHost = 'localhost';
