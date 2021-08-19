@@ -50,6 +50,10 @@ class BackupDatabase extends Command
             $dbUser = 'postgres';
             $dbPassword = 'postgres';
             $dbName = 'postgres';
+            if ($this->option('drive')) {
+                $dbDrive = $this->option('drive');
+            }
+
             if ($dbDrive == 'pgsql') {
                 $dumpCommand = PostgreSql::create();
             }
@@ -57,9 +61,6 @@ class BackupDatabase extends Command
                 $dumpCommand = MySql::create();
             }
 
-            if ($this->option('drive')) {
-                $dbDrive = $this->option('drive');
-            }
 
             if ($this->option('host')) {
                 $dbHost = $this->option('host');
