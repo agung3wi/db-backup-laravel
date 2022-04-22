@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Cache\Store;
 use Spatie\DbDumper\Databases\PostgreSql;
 use Spatie\DbDumper\Databases\MySql;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -88,7 +89,11 @@ class BackupDatabase extends Command
             }
 
             $this->info('The backup has been started');
-            $backup_name = $dbName . ".sql";
+            $dateBefore = date("Y-m-d", time() - (3600 * 24 * 5));
+            $date = date("Y-m-d");
+            if (!file_exists(storage_path($name)))
+                mkdir(storage_path($name));
+            $backup_name = $name . "/" . $date . ".sql";
             $backup_path = storage_path($backup_name);
             $dumpCommand->setDbName($dbName)
                 ->setPort($dbPort)
@@ -97,7 +102,15 @@ class BackupDatabase extends Command
                 ->setHost($dbHost)
                 ->setDbName($dbName);
             $dumpCommand->dumpToFile($backup_path);
-            Storage::disk('s3')->put($name . '.sql', fopen($backup_path, 'r+'));
+            Storage::disk('s3')->put($backup_name, fopen($backup_path, 'r+'));
+
+            if (file_exists($backup_path)) {
+                unlink($backup_path);
+            }
+
+            if (Storage::disk('s3')->exists($name . "/" . $dateBefore . ".sql")) {
+                Storage::disk('s3')->delete($name . "/" . $dateBefore . ".sql");
+            }
             $this->info('The backup has been proceed successfully.');
         } catch (ProcessFailedException $exception) {
             logger()->error('Backup exception', compact('exception'));
